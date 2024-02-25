@@ -20,5 +20,9 @@ This Bash script is a simple yet powerful tool designed to backup files from a s
 3. Run the script with the following command:
 
 ```bash
-./run.sh <SRC_DIR> <BACKUP_DIR>
+./run.sh -s <SRC_DIR> -t <BACKUP_DIR> [-p NUM_PROCESSES]
 ```
+
+- `-s <SRC_DIR>`: Specifies the source directory from which files will be backed up.
+- `-t <BACKUP_DIR>`: Specifies the directory where backup files will be stored.
+- `-p NUM_PROCESSES` (Optional): Specifies the number of concurrent processes to use for the backup operation. If not provided, the default value of 20 processes is used.

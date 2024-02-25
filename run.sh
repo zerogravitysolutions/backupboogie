@@ -18,6 +18,9 @@
 # Create log directory if it doesn't exist
 mkdir -p log
 
+# Default number of processes
+DEFAULT_NUM_PROCESSES=20
+
 # Configuration
 LOG_FILE="log/backup.log"
 
@@ -90,7 +93,7 @@ backup_files() {
         backup_file "$file" "$backup_dir" "$backup_datetime" & ((num_processes++))
 
         # Limit the number of concurrent processes
-        if ((num_processes >= 20)); then
+        if ((num_processes >= DEFAULT_NUM_PROCESSES)); then
             wait  # Wait for background processes to finish before spawning new ones
             num_processes=0
         fi
@@ -100,16 +103,37 @@ backup_files() {
 }
 
 # Main
-if [[ $# -ne 2 ]]; then
-    log "Error: Usage: $0 <SRC_DIR> <BACKUP_DIR>"
+# Check if the script has at least two arguments
+if [[ $# -lt 2 ]]; then
+    log "Error: Usage: $0 -s <SRC_DIR> -t <BACKUP_DIR> [-p NUM_PROCESSES]"
     exit 1
 fi
 
-SRC_DIR="$1"
-BACKUP_DIR="$2"
+# Parse command-line options
+# Extracting SRC_DIR, BACKUP_DIR, and NUM_PROCESSES from arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -p)
+            shift
+            NUM_PROCESSES=$1
+            ;;
+        -s)
+            shift
+            SRC_DIR=$1
+            ;;
+        -t)
+            shift
+            BACKUP_DIR=$1
+            ;;
+    esac
+    shift
+done
+
+# Set default number of processes if not specified
+NUM_PROCESSES=${NUM_PROCESSES:-$DEFAULT_NUM_PROCESSES}
 
 # Perform backup and log the operation
 echo -e "\n" >>  "$LOG_FILE" # add empty lines
-log "Starting backup process from $SRC_DIR to $BACKUP_DIR..."
+log "Starting backup process from $SRC_DIR to $BACKUP_DIR with $NUM_PROCESSES processes..."
 backup_files "$SRC_DIR" "$BACKUP_DIR"
 log "Backup process completed."
