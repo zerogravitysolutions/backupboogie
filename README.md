@@ -20,9 +20,40 @@ This Bash script is a simple yet powerful tool designed to backup files from a s
 3. Run the script with the following command:
 
 ```bash
-./run.sh -s <SRC_DIR> -t <BACKUP_DIR> [-p NUM_PROCESSES]
+./run.sh -s <SRC_DIR> -t <TARGET_DIR> [-k <SSH_KEY>] [-p NUM_PROCESSES]
 ```
 
 - `-s <SRC_DIR>`: Specifies the source directory from which files will be backed up.
-- `-t <BACKUP_DIR>`: Specifies the directory where backup files will be stored.
+- `-t <TARGET_DIR>`: Specifies the target directory for storing backup files. It can be either a local directory path or a remote directory specified in the format 'user@host:/path/to/directory'.
+- `-k <SSH_KEY>` (Optional): Specifies the path to the SSH private key file for SSH key-based authentication. If not provided and the target is a remote directory, the script will prompt for a password at runtime.
 - `-p NUM_PROCESSES` (Optional): Specifies the number of concurrent processes to use for the backup operation. If not provided, the default value of 20 processes is used.
+
+### Example Usage
+
+#### Local Directory
+
+To specify a local directory as the target and set the number of concurrent processes using the `-p` option, simply provide the local directory path using the `-t` option and specify the number of processes using the `-p` option. For example:
+
+```bash
+./run.sh -s /local/source/directory -t /local/backup/directory -p 5
+```
+
+This command will back up files from the local source directory to the local backup directory with 5 concurrent processes. Adjust the number of processes according to your system's capabilities and requirements.
+
+#### Remote Target with SSH Key
+
+To specify a remote directory with SSH key-based authentication, use the `-t` and `-k` options. For example:
+
+```bash
+./run.sh -s /local/source/directory -t user@example.com:/remote/backup/directory -k /path/to/your/private/key/id_rsa
+```
+
+This command will back up files from the local source directory to the remote backup directory on the server `example.com`, using the specified SSH private key for authentication.
+
+#### Remote Target without SSH Key
+
+If an SSH key is not provided, the script will prompt for a password at runtime. For example:
+
+```bash
+./run.sh -s /local/source/directory -t user@example.com:/remote/backup/directory
+```

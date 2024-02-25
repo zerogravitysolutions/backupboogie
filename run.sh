@@ -105,12 +105,12 @@ backup_files() {
 # Main
 # Check if the script has at least two arguments
 if [[ $# -lt 2 ]]; then
-    log "Error: Usage: $0 -s <SRC_DIR> -t <BACKUP_DIR> [-p NUM_PROCESSES]"
+    log "Error: Usage: $0 -s <SRC_DIR> -t <TARGET_DIR> [-k <SSH_KEY>] [-p NUM_PROCESSES]"
     exit 1
 fi
 
 # Parse command-line options
-# Extracting SRC_DIR, BACKUP_DIR, and NUM_PROCESSES from arguments
+# Extracting SRC_DIR, BACKUP_DIR, REMOTE_DIR, REMOTE_HOST, REMOTE_USER, SSH_KEY, and NUM_PROCESSES from arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -p)
@@ -123,11 +123,43 @@ while [[ $# -gt 0 ]]; do
             ;;
         -t)
             shift
-            BACKUP_DIR=$1
+            TARGET=$1
+            ;;
+        -k)
+            shift
+            SSH_KEY=$1
             ;;
     esac
     shift
 done
+
+# Parse target for remote directory or local directory
+if [[ $TARGET == *":"* ]]; then
+    REMOTE_USER=$(echo "$TARGET" | cut -d":" -f1)
+    REMOTE_HOST=$(echo "$TARGET" | cut -d":" -f2 | cut -d"/" -f1)
+    REMOTE_DIR=$(echo "$TARGET" | cut -d":" -f2 | cut -d"/" -f2-)
+    # Check if the target format is correct
+    if [[ -z "$REMOTE_USER" || -z "$REMOTE_HOST" || -z "$REMOTE_DIR" ]]; then
+        log "Error: Incorrect target format. Please provide the target in the format 'user@host:/path/to/directory'."
+        exit 1
+    fi
+else
+    BACKUP_DIR=$TARGET
+fi
+
+# If an SSH key is provided, construct the SSH command with the specified key
+if [[ -n "$SSH_KEY" ]]; then
+    SSH_COMMAND="ssh -i $SSH_KEY $REMOTE_USER@$REMOTE_HOST"
+else
+    SSH_COMMAND="ssh $REMOTE_USER@$REMOTE_HOST"
+fi
+
+# Example usage of SSH command
+if [[ -n "$REMOTE_DIR" ]]; then
+    $SSH_COMMAND mkdir -p "$REMOTE_DIR"
+else
+    mkdir -p "$BACKUP_DIR"
+fi
 
 # Set default number of processes if not specified
 NUM_PROCESSES=${NUM_PROCESSES:-$DEFAULT_NUM_PROCESSES}
